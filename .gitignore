@@ -1,0 +1,145 @@
+# ========================
+# Dependencies
+# ========================
+node_modules/
+vendor/
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.gem
+*.war
+*.jar
+
+# ========================
+# Environment & Secrets
+# ========================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+*.crt
+secrets/
+config/secrets.*
+*.secret
+
+# ========================
+# Logs
+# ========================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.out
+
+# ========================
+# Database
+# ========================
+*.sqlite
+*.sqlite3
+*.db
+*.sql
+dump.rdb
+*.dump
+data/
+
+# ========================
+# OS Files
+# ========================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ========================
+# IDE / Editor
+# ========================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# ========================
+# Testing & Coverage
+# ========================
+coverage/
+.coverage
+.nyc_output/
+*.lcov
+htmlcov/
+.pytest_cache/
+test-results/
+junit.xml
+
+# ========================
+# Build Artifacts
+# ========================
+dist/
+out/
+target/
+bin/
+obj/
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+
+# ========================
+# Package Manager Files
+# ========================
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+Pipfile.lock
+poetry.lock
+Gemfile.lock
+composer.lock
+
+# ========================
+# Docker
+# ========================
+docker-compose.override.yml
+.dockerignore
+
+# ========================
+# CI/CD & Cloud
+# ========================
+.terraform/
+*.tfstate
+*.tfstate.backup
+.serverless/
+.aws/
+.gcloud/
+
+# ========================
+# Misc
+# ========================
+tmp/
+temp/
+.cache/
+.parcel-cache/
+*.bak
+*.tmp
+*.pid
+/src/generated/prisma
