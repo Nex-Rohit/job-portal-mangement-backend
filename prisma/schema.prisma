@@ -1,0 +1,138 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+  output          = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String        @id @default(uuid())
+  firstName    String
+  lastName     String
+  email        String        @unique
+  password     String
+  role         Role          @default(user)
+
+  //for user only
+  education    Education?    @relation(fields: [educationId], references: [id])
+  educationId  String?       @unique
+  userDetails  UserDetails?
+
+  // for admin only
+  company      Company?      @relation(fields: [companyId], references: [id])
+  companyId    String?       @unique
+
+  applications Application[]
+  savedJobs    SavedJob[]
+  jobs         Job[]
+  createdAt    DateTime          @default(now())
+}
+
+model Education {
+  id                 String  @id @default(uuid())
+  graduationClg      String?
+  graduationPerc     String?
+  intermediateSchool String?
+  intermediatePerc   String?
+  postGradClg        String?
+  postGradPerc       String?
+  user               User?
+  userId             String  @unique
+  createdAt          DateTime  @default(now())
+}
+
+model UserDetails {
+  id            String  @id @default(uuid())
+  profilePhoto  String?
+  profilePhotoPublicId String? 
+  resumeLink    String?
+  resumePublicId       String? 
+  appliedCount  Int     @default(0)
+  selectedCount Int     @default(0)
+  rejectedCount Int     @default(0)
+  user          User    @relation(fields: [userId], references: [id])
+  userId        String  @unique
+  createdAt     DateTime   @default(now())
+}
+
+model Job {
+  id           String        @id @default(uuid())
+  jobType      JobType       @default(fulltime)
+  jobRole      JobRole       @default(softwere_engineer)
+  title        String
+  description  String
+  experience   String
+  salary       String
+  location     String
+  admin        User          @relation(fields: [adminId], references: [id])
+  adminId      String
+  company      Company       @relation(fields: [companyId], references: [id])
+  companyId    String
+  applications Application[]
+  savedJobs    SavedJob[]
+  createdAt    DateTime          @default(now())
+}
+
+
+model Company {
+  id           String  @id @default(uuid())
+  companyName  String
+  company_img  String
+  jobsPosted   Int     @default(0)
+  selectedCand Int     @default(0)
+  rejectedCand Int     @default(0)
+  jobs         Job[]
+  employers    User[]  
+  createdAt    DateTime          @default(now())
+}
+
+model Application {
+  id        String            @id @default(uuid())
+  job       Job               @relation(fields: [jobId], references: [id])
+  jobId     String
+  user      User              @relation(fields: [userId], references: [id])
+  userId    String
+  appliedAt DateTime          @default(now())
+  status    ApplicationStatus @default(pending)
+}
+
+model SavedJob {
+  id      String   @id @default(uuid())
+  job     Job      @relation(fields: [jobId], references: [id])
+  jobId   String
+  user    User     @relation(fields: [userId], references: [id])
+  userId  String
+  savedAt DateTime @default(now())
+}
+
+enum Role {
+  user
+  admin
+}
+
+enum JobType {
+  fulltime
+  parttime
+  remote
+  hybrid
+  internship
+  contract
+}
+
+enum ApplicationStatus {
+  pending
+  selected
+  rejected
+}
+
+enum JobRole {
+  softwere_engineer
+  fullstack_developer
+  backend_developer
+  frontend_developer
+  dotnet_developer
+
+}
