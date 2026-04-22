@@ -142,4 +142,4 @@ temp/
 *.bak
 *.tmp
 *.pid
-/src/generated/prisma
+generated/prisma
