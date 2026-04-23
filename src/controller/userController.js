@@ -10,145 +10,17 @@ import {
   uploadToCloudinary,
   deleteFromCloudinary,
 } from "../utils/cloudinaryUpload.js";
+import { createLogin, createRegisterHandler } from "./sharedContoller.js";
 
-export const UserRegister = asyncHandler(async (req, res, next) => {
-  const errors = {};
-  const { firstName, lastName, email, password, role } = req.body;
+export const UserRegister=createRegisterHandler({
+  allowedRoles:['user'],
+  modelName:"user",
+}); 
 
-  if (!firstName) errors.firstName = "First name is required";
-  if (!lastName) errors.lastName = "Last name is required";
-  if (!email) errors.email = "Email name is required";
-  if (!password) errors.password = "password name is required";
-  if (!role) errors.role = "Are you a Job seekar or Recruiter";
+export const UserLogin=createLogin({
+  allowedRoles:['user']
+})
 
-  if (role && !["user"].includes(role.toLowerCase())) {
-    errors.role = "Role must be User";
-  }
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (email && !emailRegex.test(email)) {
-    errors.email = "Invalid email format";
-  }
-
-  if (password && password.length < 8) {
-    errors.password = "Password must be at least 8 characters";
-  }
-  if (Object.keys(errors).length > 0) {
-    return sendValidationError(res, errors);
-  }
-
-  const existingUser = await prisma.user.findUnique({
-    where: { email },
-  });
-
-  if (existingUser) {
-    return sendError(res, 409, "User already exists with this email", {
-      reason: "Database error",
-    });
-  }
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  //   create user
-
-  const user = await prisma.user.create({
-    data: {
-      firstName,
-      lastName,
-      email,
-      password: hashedPassword,
-      role,
-    },
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      email: true,
-      role: true,
-      createdAt: true,
-    },
-  });
-
-  const token = signJwt(
-    {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-    },
-    process.env.JWT_SECRET,
-    { expiresIn: "1d" },
-  );
-
-  const newUser = {
-    user,
-    token: token,
-  };
-
-  const formatedUser = [newUser].flat().map((detail) => ({
-    id: detail.user.id,
-    firstName: detail.user.firstName,
-    lastName: detail.user.lastName,
-    email: detail.user.email,
-    role: detail.user.role,
-    createdAt: detail.user.createdAt,
-    token: detail.token,
-  }));
-
-  return sendSuccess(res, 201, "User Created Successfully", formatedUser);
-});
-
-export const UserLogin = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
-  const errors = {};
-  if (!email) errors.email = "Email is required";
-  if (!password) errors.password = "Password is required";
-
-  if (Object.keys(errors).length > 0) {
-    return sendValidationError(res, errors);
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { email },
-  });
-  if (!user) {
-    return sendError(res, 404, "User not found with this email", {
-      reason: "Database error",
-    });
-  }
-
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) {
-    return sendError(res, 401, "Invalid password", {
-      reason: "Authentication error",
-    });
-  }
-
-  const token = signJwt(
-    {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-    },
-    process.env.JWT_SECRET,
-    { expiresIn: "1d" },
-  );
-
-  const newUser = {
-    user,
-    token: token,
-  };
-  const formatedUser = [newUser].flat().map((detail) => ({
-    id: detail.user.id,
-    firstName: detail.user.firstName,
-    lastName: detail.user.lastName,
-    email: detail.user.email,
-    role: detail.user.role,
-    createdAt: detail.user.createdAt,
-    token: detail.token,
-  }));
-
-  return sendSuccess(res, 200, "Login successful", formatedUser[0]);
-});
 
 export const AddEducationDetails = asyncHandler(async (req, res) => {
   const userId = req.user.id;
@@ -487,7 +359,7 @@ export const applyForJob = asyncHandler(async (req, res) => {
     select: {
       id: true,
       status: true,
-      createdAt: true,
+      appliedAt: true,
       user: {
         select: {
           firstName: true,
@@ -507,7 +379,7 @@ export const applyForJob = asyncHandler(async (req, res) => {
       },
     },
   });
-  const formatedApplication = application.map((app) => ({
+  const formatedApplication = [application].flat().map((app) => ({
     applicationId: app.id,
     status: app.status,
     appliedAt: app.createdAt,
@@ -539,7 +411,7 @@ export const getUserApplications = asyncHandler(async (req, res) => {
     select: {
       id: true,
       status: true,
-      createdAt: true,
+      appliedAt: true,
       job: {
         select: {
           title: true,
@@ -586,7 +458,7 @@ export const getUserApplications = asyncHandler(async (req, res) => {
 });
 
 export const getJobById = asyncHandler(async (req, res) => {
-  const jobId = req.params.jobId;
+  const {jobId} = req.params;
   const userId = req.user.id;
 
   if (!req.user || req.user.role !== "user") {

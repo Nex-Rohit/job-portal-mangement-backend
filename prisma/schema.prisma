@@ -63,7 +63,7 @@ model Job {
   jobType      JobType       @default(fulltime)
   jobRole      JobRole       @default(softwere_engineer)
   title        String
-  description  String
+  description  String @db.Text
   experience   String
   salary       String
   location     String
@@ -80,7 +80,7 @@ model Job {
 model Company {
   id           String  @id @default(uuid())
   companyName  String
-  company_img  String
+  company_img  String?
   jobsPosted   Int     @default(0)
   selectedCand Int     @default(0)
   rejectedCand Int     @default(0)

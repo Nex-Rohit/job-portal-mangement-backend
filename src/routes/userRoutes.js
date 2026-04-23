@@ -6,6 +6,10 @@ import {
   updateUserDetails,
   AddEducationDetails,
   GetEducationDetails,
+  applyForJob,
+  getUserApplications,
+  getJobById,
+  getAllJobs,
 } from "../controller/userController.js";
 import { authorize } from "../middleware/authorize.js";
 import jwtVerifyMiddleware from "../middleware/jwtVerifyMiddleware.js";
@@ -27,7 +31,7 @@ router.patch(
   authorize(["user"]),
   upload.fields([
     { name: "profilePhoto", maxCount: 1 },
-    { name: "resume", maxCount: 1 },
+  { name: "resume", maxCount: 1 },
   ]),
   updateUserDetails,
 );
@@ -43,5 +47,9 @@ router.get(
   authorize(["user"]),
   GetEducationDetails,
 );
+router.post('/apply/:jobId',jwtVerifyMiddleware,authorize(['user']),applyForJob);
+router.get('/application',jwtVerifyMiddleware,authorize(['user']),getUserApplications);
+router.get('/job/:jobId',jwtVerifyMiddleware,authorize(['user']),getJobById);
+router.get('/jobs',jwtVerifyMiddleware,authorize(['user']),getAllJobs)
 
 export default router;

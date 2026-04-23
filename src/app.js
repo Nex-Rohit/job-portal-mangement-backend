@@ -1,7 +1,7 @@
 import express from 'express';
 import errorMiddleware from './middleware/errorMiddleware.js';
 import userRoutes from "./routes/userRoutes.js"
-
+import adminRoutes from "./routes/adminRoutes.js"
 const app = express();
 
 // App level middleware
@@ -14,7 +14,7 @@ app.post("/",(req,res)=>{
 });
 
 app.use("/api/v1/user",userRoutes);
-
+app.use("/api/v1/recruiter",adminRoutes)
 // Error handling middleware
 app.use(errorMiddleware);
 
