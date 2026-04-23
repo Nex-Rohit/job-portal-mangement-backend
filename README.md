@@ -1161,7 +1161,7 @@ curl -X PATCH http://localhost:3000/api/admin/org \
    ```
 
 The API will be available at `http://localhost:3000` (or your configured port)
-
+The Live API will be live at `https://job-portal-mangement-backend.onrender.com`
 ---
 
 ## Future Enhancements
