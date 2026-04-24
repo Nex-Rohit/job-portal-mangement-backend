@@ -8,9 +8,10 @@ A comprehensive backend system for managing job applications, user profiles, and
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
 - [Authentication](#authentication)
+- [Swagger Documentation](#swagger-documentation)
 - [API Documentation](#api-documentation)
   - [User Routes](#user-routes)
-  - [Admin Routes](#admin-routes)
+  - [Recruiter Routes](#recruiter-routes)
 - [Error Handling](#error-handling)
 - [Installation & Setup](#installation--setup)
 
@@ -78,11 +79,47 @@ The API uses **JWT (JSON Web Tokens)** for authentication:
 
 ---
 
+## Swagger Documentation
+
+This API includes comprehensive Swagger documentation that is automatically generated.
+
+### Accessing Swagger UI
+
+1. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+2. Open your browser and navigate to:
+   ```
+   http://localhost:8080/api-docs
+   ```
+
+### Features
+
+- 📚 Complete API endpoint documentation
+- 🔐 Built-in JWT authorization
+- 🧪 Try-it-out functionality to test endpoints directly
+- 📋 Request/response schema definitions
+- 📝 Detailed parameter and error documentation
+
+### Generating/Updating Swagger Documentation
+
+Whenever you update routes, regenerate the Swagger documentation:
+
+```bash
+npm run swagger:generate
+```
+
+This will update the `swagger-output.json` file with your latest endpoints.
+
+---
+
 ## API Documentation
 
 ### User Routes
 
-All user routes are prefixed with `/api/user`
+All user routes are prefixed with `/api/v1/user`
 
 ---
 
@@ -288,7 +325,7 @@ Content-Type: multipart/form-data
 **Example cURL:**
 
 ```bash
-curl -X PATCH http://localhost:3000/api/user/profile \
+curl -X PATCH http://localhost:8080/api/v1/user/profile \
   -H "Authorization: Bearer <jwt_token>" \
   -F "profilePhoto=@/path/to/photo.jpg" \
   -F "resume=@/path/to/resume.pdf"
@@ -732,15 +769,15 @@ Authorization: Bearer <jwt_token>
 
 ---
 
-### Admin Routes
+### Recruiter Routes
 
-All admin routes are prefixed with `/api/admin`
+All recruiter/admin routes are prefixed with `/api/v1/recruiter`
 
 ---
 
-#### 1. **Admin Sign-Up / Registration**
+#### 1. **Recruiter Sign-Up / Registration**
 
-Create a new admin account.
+Create a new recruiter account.
 
 | Property | Value |
 |----------|-------|
@@ -801,9 +838,9 @@ Create a new admin account.
 
 ---
 
-#### 2. **Admin Login**
+#### 2. **Recruiter Login**
 
-Authenticate admin with email and password.
+Authenticate recruiter with email and password.
 
 | Property | Value |
 |----------|-------|
@@ -1082,7 +1119,7 @@ Content-Type: multipart/form-data
 **Example cURL:**
 
 ```bash
-curl -X PATCH http://localhost:3000/api/admin/org \
+curl -X PATCH http://localhost:8080/api/v1/recruiter/org \
   -H "Authorization: Bearer <jwt_token>" \
   -F "companyImg=@/path/to/company-logo.jpg"
 ```
@@ -1143,25 +1180,33 @@ curl -X PATCH http://localhost:3000/api/admin/org \
    CLOUDINARY_NAME=your_cloudinary_name
    CLOUDINARY_API_KEY=your_api_key
    CLOUDINARY_API_SECRET=your_api_secret
+   PORT=8080
    ```
 
 4. **Run database migrations**
    ```bash
-   npx prisma migrate dev
+   npm run prisma:migrate
    ```
 
 5. **Generate Prisma Client**
    ```bash
-   npx prisma generate
+   npm run prisma:generate
    ```
 
-6. **Start the server**
+6. **Generate Swagger Documentation**
+   ```bash
+   npm run swagger:generate
+   ```
+
+7. **Start the server**
    ```bash
    npm run dev
    ```
 
-The API will be available at `http://localhost:3000` (or your configured port)
-The Live API will be live at `https://job-portal-mangement-backend.onrender.com`
+The API will be available at `http://localhost:8080`
+The Swagger documentation will be available at `http://localhost:8080/api-docs`
+The Live API will be available at `https://job-portal-mangement-backend.onrender.com`
+
 ---
 
 ## Future Enhancements

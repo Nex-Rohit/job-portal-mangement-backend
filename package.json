@@ -12,9 +12,9 @@
     "prisma:migrate": "prisma migrate dev --schema=prisma/schema.prisma",
     "prisma:generate": "prisma generate --schema=prisma/schema.prisma",
     "prisma:studio": "prisma studio --schema=prisma/schema.prisma",
-    "swagger:generate": "swagger-autogen ./swagger-output.json ./src/server.js",
+    "swagger:generate": "node swagger.js",
     "seed":"node prisma/seed.js",
-    "build": "prisma generate && node src/server.js"
+    "build": "npm run swagger:generate && prisma generate && node src/server.js"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.7.0",

@@ -68,7 +68,7 @@ model Job {
   salary       String
   location     String
   admin        User          @relation(fields: [adminId], references: [id])
-  adminId      String
+  adminId      String @unique
   company      Company       @relation(fields: [companyId], references: [id])
   companyId    String
   applications Application[]
@@ -92,9 +92,10 @@ model Company {
 model Application {
   id        String            @id @default(uuid())
   job       Job               @relation(fields: [jobId], references: [id])
-  jobId     String
+  jobId     String 
   user      User              @relation(fields: [userId], references: [id])
   userId    String
+  feedback  String? @db.Text   
   appliedAt DateTime          @default(now())
   status    ApplicationStatus @default(pending)
 }

@@ -1,5 +1,5 @@
 import express from 'express'
-import { AdminRegister,AdminLogin, createAJob, updateAJob, getAJob, RegisterACompany } from '../controller/adminController.js';
+import { AdminRegister,AdminLogin, createAJob, updateAJob, getAJob, RegisterACompany, updateStatusOfApplication, getAllJobsPosted, getAllApplicationsByJobId } from '../controller/adminController.js';
 import jwtVerifyMiddleware from "../middleware/jwtVerifyMiddleware.js"
 import upload from "../utils/multer.js"
 import {authorize} from "../middleware/authorize.js"
@@ -20,4 +20,7 @@ router.patch(
     ]),
     RegisterACompany
 );
+router.patch('/job/application/:id',jwtVerifyMiddleware,authorize(['admin']),updateStatusOfApplication);
+router.get('/jobs',jwtVerifyMiddleware,authorize(['admin']),getAllJobsPosted);
+router.get('/job/applications/all/:jobId',jwtVerifyMiddleware,authorize(['admin']),getAllApplicationsByJobId);
 export default router;

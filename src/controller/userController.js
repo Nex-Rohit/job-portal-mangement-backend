@@ -12,15 +12,14 @@ import {
 } from "../utils/cloudinaryUpload.js";
 import { createLogin, createRegisterHandler } from "./sharedContoller.js";
 
-export const UserRegister=createRegisterHandler({
-  allowedRoles:['user'],
-  modelName:"user",
-}); 
+export const UserRegister = createRegisterHandler({
+  allowedRoles: ["user"],
+  modelName: "user",
+});
 
-export const UserLogin=createLogin({
-  allowedRoles:['user']
-})
-
+export const UserLogin = createLogin({
+  allowedRoles: ["user"],
+});
 
 export const AddEducationDetails = asyncHandler(async (req, res) => {
   const userId = req.user.id;
@@ -329,7 +328,9 @@ export const applyForJob = asyncHandler(async (req, res) => {
 
   const job = await prisma.job.findUnique({
     where: { id: jobId },
+    select: { adminId: true },
   });
+
   if (!job) {
     return sendError(res, 404, "Job not found", {
       reason: "Database error",
@@ -343,6 +344,16 @@ export const applyForJob = asyncHandler(async (req, res) => {
   if (!user) {
     return sendError(res, 404, "User details not found", {
       reason: "Database error",
+    });
+  }
+
+  const existingApplication = await prisma.application.findFirst({
+    where: { userId, jobId },
+  });
+
+  if (existingApplication) {
+    return sendError(res, 409, "You have already applied for this job", {
+      reason: "Duplicate application",
     });
   }
   user.appliedCount += 1;
@@ -411,6 +422,7 @@ export const getUserApplications = asyncHandler(async (req, res) => {
     select: {
       id: true,
       status: true,
+      feedback: true,
       appliedAt: true,
       job: {
         select: {
@@ -443,6 +455,7 @@ export const getUserApplications = asyncHandler(async (req, res) => {
     jobType: app.job.jobType,
     jobRole: app.job.jobRole,
     experience: app.job.experience,
+    feedback: app.feedback,
     salary: app.job.salary,
     location: app.job.location,
     companyName: app.job.company.companyName,
@@ -458,7 +471,7 @@ export const getUserApplications = asyncHandler(async (req, res) => {
 });
 
 export const getJobById = asyncHandler(async (req, res) => {
-  const {jobId} = req.params;
+  const { jobId } = req.params;
   const userId = req.user.id;
 
   if (!req.user || req.user.role !== "user") {
@@ -561,4 +574,3 @@ export const getAllJobs = asyncHandler(async (req, res) => {
     formattedJobs,
   );
 });
-

@@ -1,0 +1,777 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Job Portal Management API",
+    "description": "API documentation for Job Portal Management Backend - A comprehensive job portal backend with user and recruiter functionalities",
+    "contact": {
+      "name": "Rohit Singh",
+      "email": "contact@example.com"
+    },
+    "license": {
+      "name": "ISC"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080/api/v1",
+      "description": "Development Server"
+    },
+    {
+      "url": "https://api.example.com/api/v1",
+      "description": "Production Server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "User",
+      "description": "User authentication and profile management"
+    },
+    {
+      "name": "User - Education",
+      "description": "User education details management"
+    },
+    {
+      "name": "User - Jobs",
+      "description": "Job browsing and application"
+    },
+    {
+      "name": "Admin",
+      "description": "Admin/Recruiter authentication"
+    },
+    {
+      "name": "Admin - Jobs",
+      "description": "Job management and creation"
+    },
+    {
+      "name": "Admin - Company",
+      "description": "Company/Organization management"
+    },
+    {
+      "name": "Admin - Applications",
+      "description": "Job application management"
+    }
+  ],
+  "paths": {
+    "/user/sign-up": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Register a new user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserRegister"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully"
+          },
+          "400": {
+            "description": "Bad request"
+          }
+        }
+      }
+    },
+    "/user/login": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Login user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserLogin"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful"
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
+        }
+      }
+    },
+    "/user/profile": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get user profile",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User profile retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfile"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "patch": {
+        "tags": ["User"],
+        "summary": "Update user profile",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "firstName": {
+                    "type": "string"
+                  },
+                  "lastName": {
+                    "type": "string"
+                  },
+                  "phoneNumber": {
+                    "type": "string"
+                  },
+                  "profilePhoto": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "resume": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile updated successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/user/education": {
+      "post": {
+        "tags": ["User - Education"],
+        "summary": "Add education details",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Education"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Education details added successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "get": {
+        "tags": ["User - Education"],
+        "summary": "Get education details",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Education details retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Education"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/user/apply/{jobId}": {
+      "post": {
+        "tags": ["User - Jobs"],
+        "summary": "Apply for a job",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Application submitted successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/user/application": {
+      "get": {
+        "tags": ["User - Jobs"],
+        "summary": "Get user applications",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Applications retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Application"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/recruiter/sign-up": {
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Register a new admin/recruiter",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserRegister"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Admin registered successfully"
+          },
+          "400": {
+            "description": "Bad request"
+          }
+        }
+      }
+    },
+    "/recruiter/login": {
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Login admin/recruiter",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserLogin"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful"
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
+        }
+      }
+    },
+    "/recruiter/job/create": {
+      "post": {
+        "tags": ["Admin - Jobs"],
+        "summary": "Create a new job",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Job"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Job created successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/recruiter/job/update/{id}": {
+      "patch": {
+        "tags": ["Admin - Jobs"],
+        "summary": "Update a job",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Job"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Job updated successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/recruiter/job/{id}": {
+      "get": {
+        "tags": ["Admin - Jobs"],
+        "summary": "Get job details",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job details retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/recruiter/jobs": {
+      "get": {
+        "tags": ["Admin - Jobs"],
+        "summary": "Get all jobs posted by admin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Jobs retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Job"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/recruiter/org": {
+      "patch": {
+        "tags": ["Admin - Company"],
+        "summary": "Register or update company",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "companyName": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "companyImg": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Company updated successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/recruiter/job/application/{id}": {
+      "patch": {
+        "tags": ["Admin - Applications"],
+        "summary": "Update application status",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": ["pending", "accepted", "rejected"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Application status updated successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/recruiter/job/applications/all/{jobId}": {
+      "get": {
+        "tags": ["Admin - Applications"],
+        "summary": "Get all applications for a job",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Applications retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Application"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UserRegister": {
+        "type": "object",
+        "required": ["email", "password", "role"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "user@example.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "securePassword123"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["user", "admin"],
+            "example": "user"
+          }
+        }
+      },
+      "UserLogin": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "user@example.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "securePassword123"
+          }
+        }
+      },
+      "UserProfile": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "user_123"
+          },
+          "email": {
+            "type": "string",
+            "example": "user@example.com"
+          },
+          "firstName": {
+            "type": "string",
+            "example": "John"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Doe"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+1234567890"
+          },
+          "profilePhoto": {
+            "type": "string",
+            "example": "https://cloudinary.com/image.jpg"
+          },
+          "resume": {
+            "type": "string",
+            "example": "https://cloudinary.com/resume.pdf"
+          }
+        }
+      },
+      "Education": {
+        "type": "object",
+        "required": ["school", "degree", "fieldOfStudy"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "edu_123"
+          },
+          "school": {
+            "type": "string",
+            "example": "University of Technology"
+          },
+          "degree": {
+            "type": "string",
+            "example": "Bachelor"
+          },
+          "fieldOfStudy": {
+            "type": "string",
+            "example": "Computer Science"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date",
+            "example": "2020-01-01"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "example": "2024-01-01"
+          }
+        }
+      },
+      "Job": {
+        "type": "object",
+        "required": ["title", "description"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "job_123"
+          },
+          "title": {
+            "type": "string",
+            "example": "Senior Software Engineer"
+          },
+          "description": {
+            "type": "string",
+            "example": "We are looking for an experienced software engineer"
+          },
+          "location": {
+            "type": "string",
+            "example": "San Francisco, CA"
+          },
+          "salary": {
+            "type": "string",
+            "example": "$100,000 - $150,000"
+          },
+          "jobType": {
+            "type": "string",
+            "example": "Full-time"
+          }
+        }
+      },
+      "Application": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "app_123"
+          },
+          "userId": {
+            "type": "string",
+            "example": "user_123"
+          },
+          "jobId": {
+            "type": "string",
+            "example": "job_123"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "accepted", "rejected"],
+            "example": "pending"
+          },
+          "appliedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-04-24T10:30:00Z"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "An error occurred"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Enter JWT token"
+      }
+    }
+  }
+}

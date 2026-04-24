@@ -22,7 +22,6 @@ router.get(
   "/profile",
   jwtVerifyMiddleware,
   authorize(["user"]),
-  
   getUserDetails,
 );
 router.patch(

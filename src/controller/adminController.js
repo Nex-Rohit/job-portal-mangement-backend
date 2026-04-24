@@ -35,7 +35,6 @@ export const RegisterACompany = asyncHandler(async (req, res) => {
     });
   }
 
-
   const admin = await prisma.user.findUnique({
     where: {
       id: adminId,
@@ -49,9 +48,10 @@ export const RegisterACompany = asyncHandler(async (req, res) => {
   if (req.files?.companyImg) {
     // delete old photo from cloudinary if exists
     const existing = await prisma.company.findUnique({
-      where: { id: admin.companyId },select:{
-        companyName:true
-      }
+      where: { id: admin.companyId },
+      select: {
+        companyName: true,
+      },
     });
     if (existing?.company_img) {
       await deleteFromCloudinary(existing.company_img, "image");
@@ -63,7 +63,7 @@ export const RegisterACompany = asyncHandler(async (req, res) => {
       "image",
     );
     updateData.company_img = result.secure_url;
-    updateData.companyName=existing.companyName;
+    updateData.companyName = existing.companyName;
   }
 
   if (Object.keys(updateData).length === 0) {
@@ -146,13 +146,12 @@ export const createAJob = asyncHandler(async (req, res) => {
   if (!jobRole) errors.jobRole = "What is the required role for this job ?";
   if (!location) errors.location = "Where is the location for the job ?";
 
-  const SavableJobRole=jobRole?.split(" ").join("_");
-//   console.log(SavableJobRole);
-  if(!JOBROLETYPE.includes(SavableJobRole))errors.jobRole="Job role must be one of the listed";
-  if(!JOBTYPE.includes(jobType))errors.jobType="Job type must be one of the listed"
-
-
-
+  const SavableJobRole = jobRole?.split(" ").join("_");
+  //   console.log(SavableJobRole);
+  if (!JOBROLETYPE.includes(SavableJobRole?.toLowerCase()))
+    errors.jobRole = "Job role must be one of the listed";
+  if (!JOBTYPE.includes(jobType))
+    errors.jobType = "Job type must be one of the listed";
 
   if (Object.keys(errors).length > 0) {
     return sendValidationError(res, errors);
@@ -265,4 +264,130 @@ export const getAJob = asyncHandler(async (req, res) => {
 
 export const updateAJob = asyncHandler(async (req, res) => {
   const { ...rest } = req.body;
+  // TODO
 });
+
+export const updateStatusOfApplication = asyncHandler(async (req, res) => {
+  const adminId = req.user.id;
+  const { ApplicationStatus, feedback } = req.body;
+  const { id } = req.params;
+  const STATUS = ["pending", "selected", "rejected"];
+
+  const error = {};
+  if (!adminId) {
+    return sendError(res, 401, "Unauthorized access", {
+      reason: "Authentication error",
+    });
+  }
+  if (!req.user.role === "admin") {
+    return sendError(res, 403, "Forbidden access", {
+      reason: "Authorization error",
+    });
+  }
+
+  if (!ApplicationStatus) error.ApplicationStatus = "Status is required";
+  if (!STATUS.includes(ApplicationStatus))
+    error.ApplicationStatus = "Status must be pending,rejected or selected";
+  if (!feedback) error.feedback = "Feedback is required";
+  if (Object.keys(error).length > 0) {
+    return sendValidationError(res, error);
+  }
+
+  const application = await prisma.application.update({
+    where: { id },
+    data: { status: ApplicationStatus, feedback: feedback },
+  });
+
+  return sendSuccess(res, 200, "application status updated successfully");
+});
+
+export const getAllJobsPosted = asyncHandler(async (req, res) => {
+  const adminId = req.user.id;
+  if (!adminId) {
+    return sendError(res, 401, "Unauthorized access", {
+      reason: "Authentication error",
+    });
+  }
+  if (!req.user.role === "admin") {
+    return sendError(res, 403, "Forbidden access", {
+      reason: "Authorization error",
+    });
+  }
+
+  const jobs=await prisma.user.findUnique({
+    where:{id:adminId},
+    select:{
+      jobs:{
+        select:{
+          id:true,
+          jobRole:true,
+          jobType:true,
+          experience:true,
+          salary:true,
+          location:true,
+          title:true,
+          description:true,
+          createdAt:true
+        }
+      }
+    }
+  });
+ return sendSuccess(res,200,"Jobs retrived successfully",jobs);
+});
+
+export const getAllApplicationsByJobId=asyncHandler(async(req,res)=>{
+   const adminId = req.user.id;
+   const {jobId}=req.params;
+  if (!adminId) {
+    return sendError(res, 401, "Unauthorized access", {
+      reason: "Authentication error",
+    });
+  }
+  if (!req.user.role === "admin") {
+    return sendError(res, 403, "Forbidden access", {
+      reason: "Authorization error",
+    });
+  }
+
+  const application =await prisma.application.findMany({
+    where:{
+      jobId:jobId
+    },
+    select: {
+        id: true,
+        status: true,
+        appliedAt: true,
+        feedback: true,
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName:true,
+            email: true,
+            userDetails:{
+              select:{
+                profilePhoto:true,
+                resumeLink:true,
+              }
+            },
+            education:{
+              select:{
+                graduationClg:true,
+                graduationPerc:true,
+                intermediatePerc:true,
+                intermediateSchool:true,
+                postGradClg:true,
+                postGradPerc:true
+              }
+            }
+          },
+        },
+      },
+  });
+   if (!application.length) {
+      return sendError(res,404,'No applications found for this job');
+    }
+
+   return sendSuccess(res,200,"Fetched Job applications",application);
+    
+})
