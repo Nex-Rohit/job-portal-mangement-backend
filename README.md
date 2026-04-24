@@ -11,7 +11,26 @@ A comprehensive backend system for managing job applications, user profiles, and
 - [Swagger Documentation](#swagger-documentation)
 - [API Documentation](#api-documentation)
   - [User Routes](#user-routes)
+    - [User Sign-Up](#1-user-sign-up--registration)
+    - [User Login](#2-user-login)
+    - [Get User Profile](#3-get-user-profile)
+    - [Update User Profile](#4-update-user-profile)
+    - [Add Education Details](#5-add-education-details)
+    - [Get Education Details](#6-get-education-details)
+    - [Apply for a Job](#7-apply-for-a-job)
+    - [Get User Applications](#8-get-user-applications)
+    - [Get Job by ID](#9-get-job-by-id)
+    - [Get All Jobs](#10-get-all-jobs)
   - [Recruiter Routes](#recruiter-routes)
+    - [Recruiter Sign-Up](#1-recruiter-sign-up--registration)
+    - [Recruiter Login](#2-recruiter-login)
+    - [Create a Job](#3-create-a-job)
+    - [Update a Job](#4-update-a-job)
+    - [Get Job Details](#5-get-job-details)
+    - [Register Company](#6-register-company)
+    - [Get All Jobs Posted](#7-get-all-jobs-posted)
+    - [Update Application Status](#8-update-application-status)
+    - [Get All Applications for a Job](#9-get-all-applications-for-a-job)
 - [Error Handling](#error-handling)
 - [Installation & Setup](#installation--setup)
 
@@ -1150,6 +1169,207 @@ curl -X PATCH http://localhost:8080/api/v1/recruiter/org \
 
 ---
 
+#### 7. **Get All Jobs Posted**
+
+Retrieve all job postings created by the recruiter.
+
+| Property | Value |
+|----------|-------|
+| **Endpoint** | `/jobs` |
+| **Method** | `GET` |
+| **Authentication** | Required (JWT) |
+| **Authorization** | Required (role: "admin") |
+
+**Request Headers:**
+
+```
+Authorization: Bearer <jwt_token>
+```
+
+**Query Parameters:** None
+
+**Request Body:** Not applicable
+
+**Success Response (200):**
+
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "All jobs posted by recruiter retrieved successfully",
+  "data": [
+    {
+      "jobId": "job-uuid-1",
+      "jobTitle": "Senior Developer",
+      "description": "Looking for experienced developer...",
+      "location": "New York, NY",
+      "salary": "$120,000 - $150,000",
+      "jobType": "Full-time",
+      "createdAt": "2026-04-20T10:00:00Z",
+      "applicantCount": 15
+    },
+    {
+      "jobId": "job-uuid-2",
+      "jobTitle": "Junior Frontend Developer",
+      "description": "Entry-level frontend position...",
+      "location": "San Francisco, CA",
+      "salary": "$80,000 - $100,000",
+      "jobType": "Full-time",
+      "createdAt": "2026-04-21T10:00:00Z",
+      "applicantCount": 8
+    }
+  ]
+}
+```
+
+**Error Responses:**
+
+| Status | Error Message | Reason | Details |
+|--------|---------------|--------|---------|
+| 401 | Unauthorized access | Missing/Invalid JWT token | `{ "reason": "Authentication error" }` |
+| 403 | Forbidden access | Insufficient role permissions | `{ "reason": "Authorization error" }` |
+
+---
+
+#### 8. **Update Application Status**
+
+Update the status of a job application (accept/reject).
+
+| Property | Value |
+|----------|-------|
+| **Endpoint** | `/job/application/:id` |
+| **Method** | `PATCH` |
+| **Authentication** | Required (JWT) |
+| **Authorization** | Required (role: "admin") |
+
+**Request Headers:**
+
+```
+Authorization: Bearer <jwt_token>
+Content-Type: application/json
+```
+
+**URL Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `id` | string | Yes | ID of the application to update |
+
+**Request Body:**
+
+```json
+{
+  "status": "accepted"
+}
+```
+
+**Request Parameters:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `status` | string | Yes | Application status (pending, accepted, rejected) |
+
+**Success Response (200):**
+
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Application status updated successfully",
+  "data": {
+    "applicationId": "app-uuid",
+    "jobId": "job-uuid",
+    "userId": "user-uuid",
+    "status": "accepted",
+    "updatedAt": "2026-04-24T10:00:00Z"
+  }
+}
+```
+
+**Error Responses:**
+
+| Status | Error Message | Reason | Details |
+|--------|---------------|--------|---------|
+| 400 | Validation Error | Invalid status | `{ "status": "Status must be pending, accepted, or rejected" }` |
+| 401 | Unauthorized access | Missing/Invalid JWT token | `{ "reason": "Authentication error" }` |
+| 403 | Forbidden access | Insufficient role permissions | `{ "reason": "Authorization error" }` |
+| 404 | Application not found | Invalid application ID | `{ "reason": "Database error" }` |
+
+---
+
+#### 9. **Get All Applications for a Job**
+
+Retrieve all applications submitted for a specific job posting.
+
+| Property | Value |
+|----------|-------|
+| **Endpoint** | `/job/applications/all/:jobId` |
+| **Method** | `GET` |
+| **Authentication** | Required (JWT) |
+| **Authorization** | Required (role: "admin") |
+
+**Request Headers:**
+
+```
+Authorization: Bearer <jwt_token>
+```
+
+**URL Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `jobId` | string | Yes | ID of the job |
+
+**Query Parameters:** None
+
+**Request Body:** Not applicable
+
+**Success Response (200):**
+
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Applications retrieved successfully",
+  "data": [
+    {
+      "applicationId": "app-uuid-1",
+      "userId": "user-uuid-1",
+      "userName": "John Doe",
+      "email": "john@example.com",
+      "status": "pending",
+      "appliedAt": "2026-04-23T10:00:00Z"
+    },
+    {
+      "applicationId": "app-uuid-2",
+      "userId": "user-uuid-2",
+      "userName": "Jane Smith",
+      "email": "jane@example.com",
+      "status": "accepted",
+      "appliedAt": "2026-04-22T10:00:00Z"
+    },
+    {
+      "applicationId": "app-uuid-3",
+      "userId": "user-uuid-3",
+      "userName": "Bob Johnson",
+      "email": "bob@example.com",
+      "status": "rejected",
+      "appliedAt": "2026-04-21T10:00:00Z"
+    }
+  ]
+}
+```
+
+**Error Responses:**
+
+| Status | Error Message | Reason | Details |
+|--------|---------------|--------|---------|
+| 401 | Unauthorized access | Missing/Invalid JWT token | `{ "reason": "Authentication error" }` |
+| 403 | Forbidden access | Insufficient role permissions | `{ "reason": "Authorization error" }` |
+| 404 | Job not found | Invalid job ID | `{ "reason": "Database error" }` |
+
+---
+
 ## Installation & Setup
 
 ### Prerequisites
@@ -1211,8 +1431,9 @@ The Live API will be available at `https://job-portal-mangement-backend.onrender
 
 ## Future Enhancements
 
-- Admin routes for job management
-- Application tracking and status updates
-- Email notifications
-- Advanced search and filtering
+- Advanced search and filtering for jobs
+- Email notifications for applications and status updates
 - Pagination for large datasets
+- Analytics dashboard for recruiters
+- Resume parsing and skill matching
+- Interview scheduling system
