@@ -4,8 +4,8 @@ import { sendError, sendValidationError } from "../utils/errorHandler.js";
 import prisma from "../db/db.js";
 import { signJwt } from "../utils/jwtSign.js";
 import bcrypt from "bcrypt";
-import { sendEmail } from "../utils/nodemailerService.js";
-import { welcomeMessage } from "../utils/templates.js";
+// import { sendEmail } from "../utils/nodemailerService.js";
+// import { welcomeMessage } from "../utils/templates.js";
 
 export const createRegisterHandler = ({
   allowedRoles,
@@ -58,7 +58,7 @@ export const createRegisterHandler = ({
     }, {});
 
 
-    sendEmail("rohiinegi2002@gmail.com",`Welcome ${firstName+' '+lastName} `,welcomeMessage(firstName,lastName,email)).then(res=>console.log(res)).catch(err=>console.log(err));
+    // sendEmail("rohiinegi2002@gmail.com",`Welcome ${firstName+' '+lastName} `,welcomeMessage(firstName,lastName,email)).then(res=>console.log(res)).catch(err=>console.log(err));
 
     // Admin flow — has organizationName, needs company creation
     if (extraData?.organizationName) {
