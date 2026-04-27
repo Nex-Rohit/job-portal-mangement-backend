@@ -9,6 +9,7 @@ import {
   deleteFromCloudinary,
 } from "../utils/cloudinaryUpload.js";
 import { createRegisterHandler, createLogin } from "./sharedContoller.js";
+import { sendEmailViaResend } from "../utils/sendEmail.js";
 
 export const AdminRegister = createRegisterHandler({
   allowedRoles: ["admin"],
@@ -186,6 +187,20 @@ export const createAJob = asyncHandler(async (req, res) => {
     },
   });
 
+  const company=await prisma.user.update({
+    where:{
+      id:adminId
+    },
+    data:{
+      company:{
+        update:{
+          jobsPosted:{
+            increment:1
+          }
+        }
+      }
+    }
+  })
   if (!job) {
     return sendError(res, 500, "Unable to create a Job", {
       reason: "Database error",
@@ -293,11 +308,73 @@ export const updateStatusOfApplication = asyncHandler(async (req, res) => {
     return sendValidationError(res, error);
   }
 
+
   const application = await prisma.application.update({
     where: { id },
     data: { status: ApplicationStatus, feedback: feedback },
+    select:{
+      user:{
+        select:{
+          email:true
+        }
+      },
+      job:{
+        select:{
+          jobRole:true,
+          jobType:true,
+          title:true,
+          salary:true,
+          location:true
+        }
+      },
+    }
   });
 
+  if(ApplicationStatus==='rejected'){
+    const company=await prisma.user.update({
+      where:{
+        id:adminId
+      },
+      data:{
+        company:{
+          update:{
+            rejectedCand:{
+              increment:1
+            }
+          }
+        }
+      }
+    })
+  }
+
+  if(ApplicationStatus==='selected'){
+    const company=await prisma.user.update({
+      where:{
+        id:adminId
+      },
+      data:{
+        company:{
+          update:{
+            selectedCand:{
+              increment:1
+            }
+          }
+        }
+      }
+    })
+  }
+  if(application){
+    const email=application.user.email;
+    const job={
+      role:application.job.jobRole,
+      type:application.job.jobType,
+      title:application.job.title,
+      salary:application.job.salary,
+      location:application.job.location
+    }
+    // console.log('Email sent');
+    // sendEmailViaResend('developmentbyrohit@gmail.com',email,'Application Submission result',job,feedback);
+  }
   return sendSuccess(res, 200, "application status updated successfully");
 });
 
@@ -390,4 +467,43 @@ export const getAllApplicationsByJobId=asyncHandler(async(req,res)=>{
 
    return sendSuccess(res,200,"Fetched Job applications",application);
     
+})
+
+export const getCompanyDetails=asyncHandler(async(req,res)=>{
+  const adminId=req.user.id;
+  if (!adminId) {
+    return sendError(res, 401, "Unauthorized access", {
+      reason: "Authentication error",
+    });
+  }
+  if (!req.user.role === "admin") {
+    return sendError(res, 403, "Forbidden access", {
+      reason: "Authorization error",
+    });
+  }
+
+
+  const company= await prisma.user.findUnique({
+    where:{
+      id:adminId
+    },
+    select:{
+      company:{
+        select:{
+          company_img:true,
+          companyName:true,
+          jobsPosted:true,
+          rejectedCand:true,
+          selectedCand:true
+        }
+      }
+    }
+  });
+
+
+  if(!company){
+    return sendError(res,404,"Organization not found",{reason:"Database error"});
+  }
+
+  return sendSuccess(res,200,"Organization fetched successfully",company);
 })

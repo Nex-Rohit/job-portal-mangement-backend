@@ -527,6 +527,8 @@ export const getJobById = asyncHandler(async (req, res) => {
 });
 
 export const getAllJobs = asyncHandler(async (req, res) => {
+  const { location } = req.query;
+
   if (!req.user || req.user.role !== "user") {
     return sendError(res, 403, "Forbidden access", {
       reason: "Authorization error",
@@ -534,6 +536,14 @@ export const getAllJobs = asyncHandler(async (req, res) => {
   }
 
   const jobs = await prisma.job.findMany({
+    where: {
+      ...(location && {
+        location: {
+          contains: location,
+          mode: "insensitive",
+        },
+      }),
+    },
     select: {
       id: true,
       title: true,
@@ -551,12 +561,13 @@ export const getAllJobs = asyncHandler(async (req, res) => {
     },
   });
 
-  if (!jobs) {
+  if (!jobs.length) {
     return sendError(res, 404, "No jobs found", {
       reason: "Database error",
     });
   }
-  const formattedJobs = [jobs].flat().map((job) => ({
+
+  const formattedJobs = jobs.map((job) => ({
     id: job.id,
     title: job.title,
     description: job.description,
@@ -567,10 +578,13 @@ export const getAllJobs = asyncHandler(async (req, res) => {
     companyName: job.company.companyName,
     companyImage: job.company.company_img,
   }));
+
   return sendSuccess(
     res,
     200,
-    "All jobs retrieved successfully",
+    location
+      ? `Jobs fetched for location: ${location}`
+      : "All jobs retrieved successfully",
     formattedJobs,
   );
 });
