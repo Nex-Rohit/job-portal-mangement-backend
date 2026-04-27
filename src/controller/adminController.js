@@ -9,7 +9,6 @@ import {
   deleteFromCloudinary,
 } from "../utils/cloudinaryUpload.js";
 import { createRegisterHandler, createLogin } from "./sharedContoller.js";
-import { sendEmailViaResend } from "../utils/sendEmail.js";
 
 export const AdminRegister = createRegisterHandler({
   allowedRoles: ["admin"],
