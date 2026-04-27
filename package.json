@@ -28,7 +28,6 @@
     "multer": "^2.1.1",
     "nodemon": "^3.1.14",
     "prisma": "^7.7.0",
-    "resend": "^6.12.2",
     "swagger-autogen": "^2.23.7",
     "swagger-ui-express": "^5.0.1"
   }
