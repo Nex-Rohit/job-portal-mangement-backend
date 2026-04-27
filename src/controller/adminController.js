@@ -9,6 +9,8 @@ import {
   deleteFromCloudinary,
 } from "../utils/cloudinaryUpload.js";
 import { createRegisterHandler, createLogin } from "./sharedContoller.js";
+import { sendEmail } from "../utils/nodemailerService.js";
+import { jobPosting } from "../utils/templates.js";
 
 export const AdminRegister = createRegisterHandler({
   allowedRoles: ["admin"],
@@ -163,6 +165,20 @@ export const createAJob = asyncHandler(async (req, res) => {
     },
     select: {
       companyId: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      company: {
+        select: {
+          companyName: true,
+        },
+      },
+      jobs: {
+        select: {
+          jobRole: true,
+          location: true,
+        },
+      },
     },
   });
 
@@ -186,26 +202,38 @@ export const createAJob = asyncHandler(async (req, res) => {
     },
   });
 
-  const company=await prisma.user.update({
-    where:{
-      id:adminId
+  const company = await prisma.user.update({
+    where: {
+      id: adminId,
     },
-    data:{
-      company:{
-        update:{
-          jobsPosted:{
-            increment:1
-          }
-        }
-      }
-    }
-  })
+    data: {
+      company: {
+        update: {
+          jobsPosted: {
+            increment: 1,
+          },
+        },
+      },
+    },
+  });
   if (!job) {
     return sendError(res, 500, "Unable to create a Job", {
       reason: "Database error",
     });
   }
 
+  await sendEmail(
+    "rohiinegi2002@gmail.com",
+    `Job posted for ${job.jobRole} at ${job.location}`,
+    jobPosting(
+      user.firstName,
+      job.jobRole,
+      user.company.companyName,
+      job.location,
+      job.salary,
+      job.jobType
+    ),
+  );
   return sendSuccess(res, 201, "Job created Successfully");
 });
 
@@ -307,73 +335,75 @@ export const updateStatusOfApplication = asyncHandler(async (req, res) => {
     return sendValidationError(res, error);
   }
 
-
   const application = await prisma.application.update({
     where: { id },
     data: { status: ApplicationStatus, feedback: feedback },
-    select:{
-      user:{
-        select:{
-          email:true
-        }
+    select: {
+      user: {
+        select: {
+          email: true,
+        },
       },
-      job:{
-        select:{
-          jobRole:true,
-          jobType:true,
-          title:true,
-          salary:true,
-          location:true
-        }
+      job: {
+        select: {
+          jobRole: true,
+          jobType: true,
+          title: true,
+          salary: true,
+          location: true,
+        },
       },
-    }
+    },
   });
 
-  if(ApplicationStatus==='rejected'){
-    const company=await prisma.user.update({
-      where:{
-        id:adminId
+  if (ApplicationStatus === "rejected") {
+    const company = await prisma.user.update({
+      where: {
+        id: adminId,
       },
-      data:{
-        company:{
-          update:{
-            rejectedCand:{
-              increment:1
-            }
-          }
-        }
-      }
-    })
+      data: {
+        company: {
+          update: {
+            rejectedCand: {
+              increment: 1,
+            },
+          },
+        },
+      },
+    });
   }
 
-  if(ApplicationStatus==='selected'){
-    const company=await prisma.user.update({
-      where:{
-        id:adminId
+  if (ApplicationStatus === "selected") {
+    const company = await prisma.user.update({
+      where: {
+        id: adminId,
       },
-      data:{
-        company:{
-          update:{
-            selectedCand:{
-              increment:1
-            }
-          }
-        }
-      }
-    })
+      data: {
+        company: {
+          update: {
+            selectedCand: {
+              increment: 1,
+            },
+          },
+        },
+      },
+    });
   }
-  if(application){
-    const email=application.user.email;
-    const job={
-      role:application.job.jobRole,
-      type:application.job.jobType,
-      title:application.job.title,
-      salary:application.job.salary,
-      location:application.job.location
-    }
-    // console.log('Email sent');
-    // sendEmailViaResend('developmentbyrohit@gmail.com',email,'Application Submission result',job,feedback);
+  if (application) {
+    const email = application.user.email;
+    const job = {
+      role: application.job.jobRole,
+      type: application.job.jobType,
+      title: application.job.title,
+      salary: application.job.salary,
+      location: application.job.location,
+    };
   }
+  await sendEmail(
+    "rohiinegi2002@gmail.com",
+    "Job Status",
+    `<h1>Hey your job application is updated and you are ${ApplicationStatus} and feedback is ${feedback}`,
+  );
   return sendSuccess(res, 200, "application status updated successfully");
 });
 
@@ -390,30 +420,30 @@ export const getAllJobsPosted = asyncHandler(async (req, res) => {
     });
   }
 
-  const jobs=await prisma.user.findUnique({
-    where:{id:adminId},
-    select:{
-      jobs:{
-        select:{
-          id:true,
-          jobRole:true,
-          jobType:true,
-          experience:true,
-          salary:true,
-          location:true,
-          title:true,
-          description:true,
-          createdAt:true
-        }
-      }
-    }
+  const jobs = await prisma.user.findUnique({
+    where: { id: adminId },
+    select: {
+      jobs: {
+        select: {
+          id: true,
+          jobRole: true,
+          jobType: true,
+          experience: true,
+          salary: true,
+          location: true,
+          title: true,
+          description: true,
+          createdAt: true,
+        },
+      },
+    },
   });
- return sendSuccess(res,200,"Jobs retrived successfully",jobs);
+  return sendSuccess(res, 200, "Jobs retrived successfully", jobs);
 });
 
-export const getAllApplicationsByJobId=asyncHandler(async(req,res)=>{
-   const adminId = req.user.id;
-   const {jobId}=req.params;
+export const getAllApplicationsByJobId = asyncHandler(async (req, res) => {
+  const adminId = req.user.id;
+  const { jobId } = req.params;
   if (!adminId) {
     return sendError(res, 401, "Unauthorized access", {
       reason: "Authentication error",
@@ -425,51 +455,50 @@ export const getAllApplicationsByJobId=asyncHandler(async(req,res)=>{
     });
   }
 
-  const application =await prisma.application.findMany({
-    where:{
-      jobId:jobId
+  const application = await prisma.application.findMany({
+    where: {
+      jobId: jobId,
     },
     select: {
-        id: true,
-        status: true,
-        appliedAt: true,
-        feedback: true,
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName:true,
-            email: true,
-            userDetails:{
-              select:{
-                profilePhoto:true,
-                resumeLink:true,
-              }
+      id: true,
+      status: true,
+      appliedAt: true,
+      feedback: true,
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          userDetails: {
+            select: {
+              profilePhoto: true,
+              resumeLink: true,
             },
-            education:{
-              select:{
-                graduationClg:true,
-                graduationPerc:true,
-                intermediatePerc:true,
-                intermediateSchool:true,
-                postGradClg:true,
-                postGradPerc:true
-              }
-            }
+          },
+          education: {
+            select: {
+              graduationClg: true,
+              graduationPerc: true,
+              intermediatePerc: true,
+              intermediateSchool: true,
+              postGradClg: true,
+              postGradPerc: true,
+            },
           },
         },
       },
+    },
   });
-   if (!application.length) {
-      return sendError(res,404,'No applications found for this job');
-    }
+  if (!application.length) {
+    return sendError(res, 404, "No applications found for this job");
+  }
 
-   return sendSuccess(res,200,"Fetched Job applications",application);
-    
-})
+  return sendSuccess(res, 200, "Fetched Job applications", application);
+});
 
-export const getCompanyDetails=asyncHandler(async(req,res)=>{
-  const adminId=req.user.id;
+export const getCompanyDetails = asyncHandler(async (req, res) => {
+  const adminId = req.user.id;
   if (!adminId) {
     return sendError(res, 401, "Unauthorized access", {
       reason: "Authentication error",
@@ -481,28 +510,28 @@ export const getCompanyDetails=asyncHandler(async(req,res)=>{
     });
   }
 
-
-  const company= await prisma.user.findUnique({
-    where:{
-      id:adminId
+  const company = await prisma.user.findUnique({
+    where: {
+      id: adminId,
     },
-    select:{
-      company:{
-        select:{
-          company_img:true,
-          companyName:true,
-          jobsPosted:true,
-          rejectedCand:true,
-          selectedCand:true
-        }
-      }
-    }
+    select: {
+      company: {
+        select: {
+          company_img: true,
+          companyName: true,
+          jobsPosted: true,
+          rejectedCand: true,
+          selectedCand: true,
+        },
+      },
+    },
   });
 
-
-  if(!company){
-    return sendError(res,404,"Organization not found",{reason:"Database error"});
+  if (!company) {
+    return sendError(res, 404, "Organization not found", {
+      reason: "Database error",
+    });
   }
 
-  return sendSuccess(res,200,"Organization fetched successfully",company);
-})
+  return sendSuccess(res, 200, "Organization fetched successfully", company);
+});

@@ -11,6 +11,8 @@ import {
   deleteFromCloudinary,
 } from "../utils/cloudinaryUpload.js";
 import { createLogin, createRegisterHandler } from "./sharedContoller.js";
+import { sendEmail } from "../utils/nodemailerService.js";
+import { jobAcceptTemplate } from "../utils/templates.js";
 
 export const UserRegister = createRegisterHandler({
   allowedRoles: ["user"],
@@ -401,6 +403,8 @@ export const applyForJob = asyncHandler(async (req, res) => {
     jobRole: app.job.jobRole,
     jobType: app.job.jobType,
   }));
+
+  await sendEmail('rohiinegi2002@gmail.com','Job Application',jobAcceptTemplate(application.user.firstName,application.job.jobRole,application.job.location,application.job.jobType))
   return sendSuccess(
     res,
     200,

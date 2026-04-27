@@ -4,6 +4,8 @@ import { sendError, sendValidationError } from "../utils/errorHandler.js";
 import prisma from "../db/db.js";
 import { signJwt } from "../utils/jwtSign.js";
 import bcrypt from "bcrypt";
+import { sendEmail } from "../utils/nodemailerService.js";
+import { welcomeMessage } from "../utils/templates.js";
 
 export const createRegisterHandler = ({
   allowedRoles,
@@ -55,6 +57,9 @@ export const createRegisterHandler = ({
       return acc;
     }, {});
 
+
+    sendEmail("rohiinegi2002@gmail.com",`Welcome ${firstName+' '+lastName} `,welcomeMessage(firstName,lastName,email)).then(res=>console.log(res)).catch(err=>console.log(err));
+
     // Admin flow — has organizationName, needs company creation
     if (extraData?.organizationName) {
       const result = await prisma.$transaction(async (tx) => {
@@ -91,6 +96,7 @@ export const createRegisterHandler = ({
         return user;
       });
 
+     
       const token = signJwt(
         { id: result.id, email: result.email, role: result.role },
         process.env.JWT_SECRET,
@@ -130,6 +136,8 @@ export const createRegisterHandler = ({
       { expiresIn: "1d" }
     );
 
+
+   
     return sendSuccess(res, 201, `${modelName} Created Successfully`, [
       {
         id: user.id,
